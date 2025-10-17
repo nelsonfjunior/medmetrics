@@ -1,0 +1,5 @@
+{
+  "name": "MedMetrics",
+  "description": "An application to help students prepare for medical residency and civil service exams by tracking study session performance in a gamified and motivational way.",
+  "requestFramePermissions": []
+}

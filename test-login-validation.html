@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Validação de Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-case { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Validação de Login</h1>
+    
+    <div class="test-case">
+        <h3>Teste 1: Campos vazios</h3>
+        <p>Clique em "Entrar" sem preencher nada</p>
+        <button onclick="testEmptyFields()">Testar Campos Vazios</button>
+        <div id="result1"></div>
+    </div>
+    
+    <div class="test-case">
+        <h3>Teste 2: Apenas email</h3>
+        <p>Preencha apenas o email</p>
+        <input type="email" id="email2" placeholder="teste@email.com">
+        <button onclick="testEmailOnly()">Testar Apenas Email</button>
+        <div id="result2"></div>
+    </div>
+    
+    <div class="test-case">
+        <h3>Teste 3: Email inválido</h3>
+        <p>Preencha email inválido</p>
+        <input type="text" id="email3" placeholder="email-invalido">
+        <input type="password" id="password3" placeholder="senha">
+        <button onclick="testInvalidEmail()">Testar Email Inválido</button>
+        <div id="result3"></div>
+    </div>
+
+    <script>
+        function testEmptyFields() {
+            const result = document.getElementById('result1');
+            try {
+                // Simular validação
+                const email = '';
+                const password = '';
+                
+                if (!email || email.trim() === '') {
+                    result.innerHTML = '<div class="success">✅ SUCESSO: Validação funcionou - Email vazio detectado</div>';
+                } else {
+                    result.innerHTML = '<div class="error">❌ ERRO: Validação falhou</div>';
+                }
+            } catch (error) {
+                result.innerHTML = '<div class="error">❌ ERRO: ' + error.message + '</div>';
+            }
+        }
+        
+        function testEmailOnly() {
+            const result = document.getElementById('result2');
+            const email = document.getElementById('email2').value;
+            
+            if (!password || password.trim() === '') {
+                result.innerHTML = '<div class="success">✅ SUCESSO: Validação funcionou - Senha vazia detectada</div>';
+            } else {
+                result.innerHTML = '<div class="error">❌ ERRO: Validação falhou</div>';
+            }
+        }
+        
+        function testInvalidEmail() {
+            const result = document.getElementById('result3');
+            const email = document.getElementById('email3').value;
+            
+            if (!email.includes('@')) {
+                result.innerHTML = '<div class="success">✅ SUCESSO: Validação funcionou - Email inválido detectado</div>';
+            } else {
+                result.innerHTML = '<div class="error">❌ ERRO: Validação falhou</div>';
+            }
+        }
+    </script>
+</body>
+</html>

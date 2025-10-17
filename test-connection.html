@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Conexão</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Conexão - MedMetrics</h1>
+    
+    <div class="test">
+        <h3>Teste 1: Verificar se o servidor está rodando</h3>
+        <button onclick="testServer()">Testar Servidor</button>
+        <div id="server-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Teste 2: Testar API de Cadastro</h3>
+        <button onclick="testRegister()">Testar Cadastro</button>
+        <div id="register-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Teste 3: Verificar Variáveis de Ambiente</h3>
+        <button onclick="checkEnv()">Verificar Env</button>
+        <div id="env-result"></div>
+    </div>
+
+    <script>
+        function addResult(elementId, message, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '<div class="' + (isSuccess ? 'success' : 'error') + '">' + message + '</div>';
+        }
+        
+        async function testServer() {
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ test: true })
+                });
+                
+                if (response.status === 400) {
+                    addResult('server-result', '✅ Servidor está rodando (erro 400 é esperado - dados inválidos)');
+                } else {
+                    addResult('server-result', '⚠️ Servidor respondeu com status: ' + response.status);
+                }
+            } catch (error) {
+                addResult('server-result', '❌ Erro de conexão: ' + error.message, false);
+            }
+        }
+        
+        async function testRegister() {
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Teste',
+                        email: 'teste@teste.com',
+                        password: '123456',
+                        gender: 'other'
+                    })
+                });
+                
+                const result = await response.text();
+                addResult('register-result', 'Status: ' + response.status + '<br>Resposta: ' + result);
+            } catch (error) {
+                addResult('register-result', '❌ Erro: ' + error.message, false);
+            }
+        }
+        
+        function checkEnv() {
+            // Verificar se as variáveis estão definidas
+            const envVars = [
+                'VITE_SUPABASE_URL',
+                'VITE_SUPABASE_ANON_KEY',
+                'SUPABASE_URL',
+                'SUPABASE_ANON_KEY'
+            ];
+            
+            let result = 'Variáveis de ambiente:<br>';
+            envVars.forEach(varName => {
+                const value = window[varName] || 'Não definida';
+                result += varName + ': ' + (value.includes('YOUR_') ? '❌ Não configurada' : '✅ Configurada') + '<br>';
+            });
+            
+            addResult('env-result', result);
+        }
+    </script>
+</body>
+</html>

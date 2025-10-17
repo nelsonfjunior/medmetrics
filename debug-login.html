@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 400px; margin: 0 auto; }
+        input { width: 100%; padding: 10px; margin: 5px 0; }
+        button { width: 100%; padding: 10px; margin: 5px 0; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Debug Login</h1>
+        
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="E-mail" value="">
+            <input type="password" id="password" placeholder="Senha" value="">
+            <button type="submit">ENTRAR</button>
+        </form>
+        
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message) {
+            log.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            addLog('🔐 Formulário enviado com: email="' + email + '", password="' + (password ? '***' : 'VAZIO') + '"');
+            
+            // Validação rigorosa
+            if (!email || email.trim() === '') {
+                addLog('❌ Email vazio - bloqueando');
+                alert('Por favor, insira um e-mail.');
+                return;
+            }
+            
+            if (!password || password.trim() === '') {
+                addLog('❌ Senha vazia - bloqueando');
+                alert('Por favor, insira uma senha.');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                addLog('❌ Email inválido - bloqueando');
+                alert('Por favor, insira um e-mail válido.');
+                return;
+            }
+            
+            addLog('✅ Validações passaram - permitindo login');
+            alert('Login permitido!');
+        });
+        
+        addLog('🚀 Página carregada - teste de validação');
+    </script>
+</body>
+</html>
