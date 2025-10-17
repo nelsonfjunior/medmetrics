@@ -18,6 +18,7 @@ import FocusZoneScreen from './components/FocusZoneScreen';
 import PerformanceAnalysisScreen from './components/PerformanceAnalysisScreen';
 import PortfolioScreen from './components/PortfolioScreen';
 import StudyPlanScreen from './components/StudyPlanScreen';
+import { loginUser, registerUser, getUserData, updateUserData } from './lib/auth-client';
 
 const REMEMBER_ME_KEY = 'medmetrics-remembered-user';
 
@@ -82,36 +83,24 @@ const App: React.FC = () => {
     console.log('✅ Validações passaram - tentando fazer login com:', { email, hasPassword: !!password });
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const { token, userData } = await loginUser(email, password);
 
-      if (response.ok) {
-        const { token } = await response.json();
-
-        if (rememberMe) {
-          localStorage.setItem(REMEMBER_ME_KEY, email);
-        } else {
-          localStorage.removeItem(REMEMBER_ME_KEY);
-        }
-
-        // Salvar token para futuras requisições
-        localStorage.setItem('auth_token', token);
-
-        setCurrentUser(email);
-        setIsAuthenticated(true);
-        setCurrentPage('dashboard');
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_ME_KEY, email);
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Erro no login.");
+        localStorage.removeItem(REMEMBER_ME_KEY);
       }
-    } catch (error) {
+
+      // Salvar token para futuras requisições
+      localStorage.setItem('auth_token', token);
+
+      setCurrentUser(email);
+      setCurrentUserData(userData);
+      setIsAuthenticated(true);
+      setCurrentPage('dashboard');
+    } catch (error: any) {
       console.error('Login error:', error);
-      alert("Erro de conexão. Tente novamente.");
+      alert(error.message || "Erro de conexão. Tente novamente.");
     }
   };
 
@@ -122,35 +111,24 @@ const App: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          gender: 'other' // Default gender
-        }),
-      });
+      const { token, userData } = await registerUser(name, email, password, 'other');
 
-      if (response.ok) {
-        const { token } = await response.json();
+      // Salvar token para futuras requisições
+      localStorage.setItem('auth_token', token);
 
-        // Salvar token para futuras requisições
-        localStorage.setItem('auth_token', token);
-
-        setCurrentUser(email);
-        setIsAuthenticated(true);
-        setCurrentPage('dashboard');
-      } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Erro no cadastro.");
-      }
-    } catch (error) {
+      setCurrentUser(email);
+      // Adicionar as propriedades que faltam para o tipo UserData
+      const completeUserData = {
+        ...userData,
+        password: password, // Senha em texto plano (não recomendado para produção)
+        securityAnswer: securityAnswer
+      };
+      setCurrentUserData(completeUserData);
+      setIsAuthenticated(true);
+      setCurrentPage('dashboard');
+    } catch (error: any) {
       console.error('Registration error:', error);
-      alert("Erro de conexão. Tente novamente.");
+      alert(error.message || "Erro de conexão. Tente novamente.");
     }
   };
 
@@ -181,20 +159,14 @@ const App: React.FC = () => {
 
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:3001/api/data', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      if (!token) return;
 
-      if (response.ok) {
-        const userData = await response.json();
-        setCurrentUserData(userData);
-      } else {
-        console.error('Erro ao carregar dados do usuário');
-      }
+      // Decodificar o token para obter o userId
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userId = payload.userId;
+
+      const userData = await getUserData(userId);
+      setCurrentUserData(userData);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     }
@@ -213,22 +185,14 @@ const App: React.FC = () => {
     try {
       const updates = updater(currentUserData);
       const token = localStorage.getItem('auth_token');
+      if (!token) return;
 
-      const response = await fetch('http://localhost:3001/api/data', {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-      });
+      // Decodificar o token para obter o userId
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userId = payload.userId;
 
-      if (response.ok) {
-        // Recarregar dados após atualização
-        await loadUserData();
-      } else {
-        console.error('Erro ao atualizar dados');
-      }
+      const newData = await updateUserData(userId, updates);
+      setCurrentUserData(newData);
     } catch (error) {
       console.error('Erro ao atualizar dados:', error);
     }
